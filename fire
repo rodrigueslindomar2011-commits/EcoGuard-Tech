@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FireAlert • Monitoramento de Queimadas</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:'Poppins',sans-serif;
+background:#020617;
+color:white;
+overflow-x:hidden;
+}
+
+body::before{
+content:'';
+position:fixed;
+width:600px;
+height:600px;
+background:#ff3b00;
+filter:blur(220px);
+opacity:0.15;
+top:-150px;
+left:-150px;
+z-index:-1;
+}
+
+body::after{
+content:'';
+position:fixed;
+width:500px;
+height:500px;
+background:#00f7ff;
+filter:blur(220px);
+opacity:0.12;
+bottom:-150px;
+right:-150px;
+z-index:-1;
+}
+
+.navbar{
+width:100%;
+padding:25px 60px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+position:sticky;
+top:0;
+z-index:1000;
+background:rgba(2,6,23,0.7);
+backdrop-filter:blur(12px);
+border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.logo{
+font-family:'Orbitron',sans-serif;
+font-size:2rem;
+font-weight:800;
+background:linear-gradient(90deg,#ff5e00,#ff3131,#00f7ff);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.status-live{
+padding:12px 22px;
+border-radius:50px;
+background:rgba(255,255,255,0.06);
+border:1px solid rgba(255,255,255,0.08);
+display:flex;
+align-items:center;
+gap:10px;
+font-size:0.95rem;
+}
+
+.dot{
+width:12px;
+height:12px;
+background:#00ff88;
+border-radius:50%;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%{transform:scale(1);opacity:1;}
+50%{transform:scale(1.5);opacity:0.4;}
+100%{transform:scale(1);opacity:1;}
+}
+
+.hero{
+padding:80px 60px 40px;
+}
+
+.hero h1{
+font-family:'Orbitron',sans-serif;
+font-size:4rem;
+max-width:900px;
+line-height:1.2;
+margin-bottom:25px;
+}
+
+.hero h1 span{
+background:linear-gradient(90deg,#ff5e00,#ff3131);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.hero p{
+max-width:800px;
+font-size:1.1rem;
+line-height:2;
+color:#cbd5e1;
+}
+
+.grid{
+padding:40px 60px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:25px;
+}
+
+.card{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+padding:30px;
+border-radius:28px;
+transition:0.4s;
+position:relative;
+overflow:hidden;
+}
+
+.card::before{
+content:'';
+position:absolute;
+width:150px;
+height:150px;
+background:rgba(255,255,255,0.05);
+filter:blur(40px);
+right:-30px;
+top:-30px;
+border-radius:50%;
+}
+
+.card:hover{
+transform:translateY(-10px);
+box-shadow:0 0 40px rgba(255,94,0,0.2);
+}
+
+.icon{
+font-size:2.5rem;
+margin-bottom:20px;
+}
+
+.card h2{
+font-size:3rem;
+font-family:'Orbitron',sans-serif;
+margin-bottom:10px;
+}
+
+.card p{
+color:#cbd5e1;
+font-size:1rem;
+}
+
+.fire{
+color:#ff5e00;
+}
+
+.temp{
+color:#ffd000;
+}
+
+.smoke{
+color:#cbd5e1;
+}
+
+.risk{
+color:#ff3131;
+}
+
+.section-title{
+padding:20px 60px;
+font-size:2rem;
+font-family:'Orbitron',sans-serif;
+}
+
+.map-container{
+padding:0 60px 40px;
+}
+
+#map{
+height:500px;
+width:100%;
+border-radius:30px;
+overflow:hidden;
+border:1px solid rgba(255,255,255,0.1);
+box-shadow:0 0 40px rgba(0,247,255,0.1);
+}
+
+.bottom-grid{
+padding:20px 60px 80px;
+display:grid;
+grid-template-columns:1.2fr 0.8fr;
+gap:30px;
+}
+
+.chart-box,
+.alert-box{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+padding:30px;
+border-radius:30px;
+}
+
+.chart-box h3,
+.alert-box h3{
+font-size:1.6rem;
+margin-bottom:25px;
+font-family:'Orbitron',sans-serif;
+}
+
+.alert{
+padding:18px;
+border-radius:18px;
+margin-bottom:18px;
+background:rgba(255,255,255,0.04);
+border-left:5px solid;
+}
+
+.alert.red{
+border-color:#ff3131;
+}
+
+.alert.orange{
+border-color:#ff8c00;
+}
+
+.alert.green{
+border-color:#00ff88;
+}
+
+.alert strong{
+display:block;
+margin-bottom:8px;
+font-size:1rem;
+}
+
+.alert p{
+color:#cbd5e1;
+line-height:1.6;
+}
+
+.radar{
+margin-top:25px;
+width:220px;
+height:220px;
+border:4px solid rgba(0,247,255,0.2);
+border-radius:50%;
+position:relative;
+margin-left:auto;
+margin-right:auto;
+overflow:hidden;
+}
+
+.radar::before{
+content:'';
+position:absolute;
+width:50%;
+height:4px;
+background:#00f7ff;
+top:50%;
+left:50%;
+transform-origin:left center;
+animation:radar 2s linear infinite;
+box-shadow:0 0 20px #00f7ff;
+}
+
+@keyframes radar{
+from{transform:rotate(0deg);}
+to{transform:rotate(360deg);}
+}
+
+.footer{
+padding:30px;
+text-align:center;
+color:#94a3b8;
+border-top:1px solid rgba(255,255,255,0.08);
+}
+
+@media(max-width:1000px){
+
+.bottom-grid{
+grid-template-columns:1fr;
+}
+
+.hero h1{
+font-size:2.8rem;
+}
+
+.navbar,
+.hero,
+.grid,
+.map-container,
+.section-title,
+.bottom-grid{
+padding-left:25px;
+padding-right:25px;
+}
+
+}
+
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+<div class="logo">FireAlert</div>
+
+<div class="status-live">
+<div class="dot"></div>
+Sistema em tempo real
+</div>
+</nav>
+
+<section class="hero">
+<h1>Monitoramento Inteligente de <span>Queimadas</span> e Riscos Ambientais</h1>
+
+<p>
+Acompanhe focos de incêndio, temperatura, fumaça e riscos ambientais através de um painel futurista com monitoramento em tempo real.
+</p>
+</section>
+
+<section class="grid">
+
+<div class="card">
+<div class="icon">🔥</div>
+<h2 class="fire" id="fires">128</h2>
+<p>Focos de incêndio detectados</p>
+</div>
+
+<div class="card">
+<div class="icon">🌡</div>
+<h2 class="temp" id="temperature">42°C</h2>
+<p>Temperatura média nas áreas críticas</p>
+</div>
+
+<div class="card">
+<div class="icon">🌫</div>
+<h2 class="smoke" id="smoke">76%</h2>
+<p>Nível de fumaça no ambiente</p>
+</div>
+
+<div class="card">
+<div class="icon">🚨</div>
+<h2 class="risk" id="risk">ALTO</h2>
+<p>Risco ambiental atual</p>
+</div>
+
+</section>
+
+<h2 class="section-title">🛰 Monitoramento Global</h2>
+
+<section class="map-container">
+<div id="map"></div>
+</section>
+
+<section class="bottom-grid">
+
+<div class="chart-box">
+<h3>📊 Crescimento das Queimadas</h3>
+<canvas id="fireChart"></canvas>
+</div>
+
+<div class="alert-box">
+<h3>🚨 Central de Alertas</h3>
+
+<div class="alert red">
+<strong>RISCO EXTREMO</strong>
+<p>Temperaturas elevadas detectadas na região norte.</p>
+</div>
+
+<div class="alert orange">
+<strong>FUMAÇA INTENSA</strong>
+<p>Níveis críticos de fumaça próximos às florestas.</p>
+</div>
+
+<div class="alert green">
+<strong>MONITORAMENTO ATIVO</strong>
+<p>Sistema detectando movimentações climáticas.</p>
+</div>
+
+<div class="radar"></div>
+
+</div>
+
+</section>
+
+<footer class="footer">
+FireAlert • Sistema Inteligente de Monitoramento Ambiental
+</footer>
+
+<script>
+
+// MAPA
+
+const map = L.map('map').setView([-14.2350, -51.9253], 4);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+const fireIcon = L.divIcon({
+    html: '🔥',
+    className: 'fire-marker',
+    iconSize: [30,30]
+});
+
+const locations = [
+    [-3.4653, -62.2159],
+    [-10.9472, -37.0731],
+    [-15.7801, -47.9292],
+    [-8.0476, -34.8770],
+    [-12.9777, -38.5016]
+];
+
+locations.forEach(location => {
+    L.marker(location,{icon:fireIcon})
+    .addTo(map)
+    .bindPopup('🔥 Foco de Queimada Detectado');
+});
+
+// GRÁFICO
+
+const ctx = document.getElementById('fireChart');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Jan','Fev','Mar','Abr','Mai','Jun'],
+        datasets: [{
+            label: 'Queimadas Detectadas',
+            data: [12,19,25,40,58,75],
+            borderColor: '#ff5e00',
+            backgroundColor: 'rgba(255,94,0,0.2)',
+            fill:true,
+            tension:0.4
+        }]
+    },
+    options: {
+        responsive:true,
+        plugins:{
+            legend:{
+                labels:{
+                    color:'white'
+                }
+            }
+        },
+        scales:{
+            y:{
+                ticks:{color:'white'}
+            },
+            x:{
+                ticks:{color:'white'}
+            }
+        }
+    }
+});
+
+// DADOS DINÂMICOS
+
+function updateData(){
+
+const fires = document.getElementById('fires');
+const temperature = document.getElementById('temperature');
+const smoke = document.getElementById('smoke');
+const risk = document.getElementById('risk');
+
+fires.innerText = Math.floor(Math.random()*200 + 50);
+
+temperature.innerText = Math.floor(Math.random()*20 + 30) + '°C';
+
+smoke.innerText = Math.floor(Math.random()*100) + '%';
+
+const risks = ['BAIXO','MODERADO','ALTO','EXTREMO'];
+const randomRisk = risks[Math.floor(Math.random()*risks.length)];
+risk.innerText = randomRisk;
+
+if(randomRisk === 'EXTREMO'){
+risk.style.color = '#ff0000';
+}
+else if(randomRisk === 'ALTO'){
+risk.style.color = '#ff5e00';
+}
+else if(randomRisk === 'MODERADO'){
+risk.style.color = '#ffd000';
+}
+else{
+risk.style.color = '#00ff88';
+}
+
+}
+
+setInterval(updateData,3000);
+
+</script>
+
+</body>
+</html>
