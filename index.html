@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="FireAlert — sistema inteligente de monitoramento de queimadas e riscos ambientais."
+    >
+
+    <meta
+        name="author"
+        content="Lindomar Rodrigues"
+    >
+
+    <title>FireAlert • Monitoramento de Queimadas</title>
+
+    <!-- Google Fonts -->
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIINfQ3Yq5f5gK1k5f2J6s7f8w9x0y1z2="
+        crossorigin=""
+    >
+
+    <!-- CSS do projeto -->
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+</head>
+
+<body>
+
+    <!-- =========================
+         NAVEGAÇÃO
+    ========================== -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            FireAlert
+        </div>
+
+        <div class="status-live">
+            <span class="dot"></span>
+
+            <span>
+                Sistema em tempo real
+            </span>
+        </div>
+
+    </nav>
+
+
+    <!-- =========================
+         HERO
+    ========================== -->
+
+    <main>
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <span class="hero-tag">
+                    🛰 MONITORAMENTO AMBIENTAL
+                </span>
+
+                <h1>
+                    Monitoramento Inteligente de
+                    <span>Queimadas</span>
+                    e Riscos Ambientais
+                </h1>
+
+                <p>
+                    Acompanhe focos de incêndio, temperatura,
+                    fumaça e riscos ambientais através de um
+                    painel futurista de monitoramento.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             INDICADORES
+        ========================== -->
+
+        <section
+            class="grid"
+            aria-label="Indicadores ambientais"
+        >
+
+            <!-- Focos -->
+
+            <article class="card">
+
+                <div class="icon">
+                    🔥
+                </div>
+
+                <h2
+                    class="fire"
+                    id="fires"
+                >
+                    128
+                </h2>
+
+                <p>
+                    Focos de incêndio detectados
+                </p>
+
+                <span class="card-status">
+                    ● Monitoramento ativo
+                </span>
+
+            </article>
+
+
+            <!-- Temperatura -->
+
+            <article class="card">
+
+                <div class="icon">
+                    🌡️
+                </div>
+
+                <h2
+                    class="temp"
+                    id="temperature"
+                >
+                    42°C
+                </h2>
+
+                <p>
+                    Temperatura média nas áreas críticas
+                </p>
+
+                <span class="card-status">
+                    ● Dados atualizados
+                </span>
+
+            </article>
+
+
+            <!-- Fumaça -->
+
+            <article class="card">
+
+                <div class="icon">
+                    🌫️
+                </div>
+
+                <h2
+                    class="smoke"
+                    id="smoke"
+                >
+                    76%
+                </h2>
+
+                <p>
+                    Nível de fumaça no ambiente
+                </p>
+
+                <span class="card-status">
+                    ● Análise ambiental
+                </span>
+
+            </article>
+
+
+            <!-- Risco -->
+
+            <article class="card">
+
+                <div class="icon">
+                    🚨
+                </div>
+
+                <h2
+                    class="risk"
+                    id="risk"
+                >
+                    ALTO
+                </h2>
+
+                <p>
+                    Risco ambiental atual
+                </p>
+
+                <span class="card-status">
+                    ● Avaliação automática
+                </span>
+
+            </article>
+
+        </section>
+
+
+        <!-- =========================
+             MAPA
+        ========================== -->
+
+        <section class="monitoring-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        MONITORAMENTO
+                    </span>
+
+                    <h2>
+                        🛰 Monitoramento Global
+                    </h2>
+
+                </div>
+
+                <span class="live-badge">
+                    <span class="dot"></span>
+                    AO VIVO
+                </span>
+
+            </div>
+
+
+            <div class="map-container">
+
+                <div id="map"></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             GRÁFICO + ALERTAS
+        ========================== -->
+
+        <section class="bottom-grid">
+
+
+            <!-- GRÁFICO -->
+
+            <article class="chart-box">
+
+                <div class="box-header">
+
+                    <div>
+
+                        <span class="section-label">
+                            ANÁLISE
+                        </span>
+
+                        <h3>
+                            📊 Crescimento das Queimadas
+                        </h3>
+
+                    </div>
+
+                </div>
+
+                <div class="chart-container">
+
+                    <canvas id="fireChart"></canvas>
+
+                </div>
+
+            </article>
+
+
+            <!-- ALERTAS -->
+
+            <article class="alert-box">
+
+                <div class="box-header">
+
+                    <div>
+
+                        <span class="section-label">
+                            SEGURANÇA
+                        </span>
+
+                        <h3>
+                            🚨 Central de Alertas
+                        </h3>
+
+                    </div>
+
+                </div>
+
+
+                <div class="alerts">
+
+
+                    <div class="alert red">
+
+                        <div class="alert-icon">
+                            🔴
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                RISCO EXTREMO
+                            </strong>
+
+                            <p>
+                                Temperaturas elevadas detectadas
+                                na região norte.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="alert orange">
+
+                        <div class="alert-icon">
+                            🟠
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                FUMAÇA INTENSA
+                            </strong>
+
+                            <p>
+                                Níveis críticos de fumaça
+                                próximos às florestas.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="alert green">
+
+                        <div class="alert-icon">
+                            🟢
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                MONITORAMENTO ATIVO
+                            </strong>
+
+                            <p>
+                                Sistema detectando movimentações
+                                climáticas.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RADAR -->
+
+                <div class="radar-area">
+
+                    <span class="radar-label">
+                        RADAR AMBIENTAL
+                    </span>
+
+                    <div class="radar">
+
+                        <div class="radar-center"></div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         RODAPÉ
+    ========================== -->
+
+    <footer class="footer">
+
+        <div class="footer-content">
+
+            <strong>
+                FireAlert
+            </strong>
+
+            <span>
+                Sistema Inteligente de Monitoramento Ambiental
+            </span>
+
+        </div>
+
+        <p>
+            Projeto desenvolvido para demonstração de
+            tecnologia e monitoramento ambiental.
+        </p>
+
+    </footer>
+
+
+    <!-- =========================
+         JAVASCRIPT EXTERNO
+    ========================== -->
+
+    <!-- Leaflet -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- JavaScript do projeto -->
+    <script src="js/script.js"></script>
+
+</body>
+
+</html>
